@@ -8,6 +8,7 @@ use App\Photo;
 use Illuminate\Http\Request;
 use App\Http\Requests\UsersRequest;
 use App\Http\Requests\UsersEditRequest;
+use Illuminate\Support\Facades\Session;
 
 class AdminUsersController extends Controller
 {
@@ -115,6 +116,7 @@ class AdminUsersController extends Controller
 
         // User::create($input);
         $user->update($input);
+        Session::flash('updated_user', $user->name . ' has been updated successfully');
 
         return redirect('/admin/users');
     }
@@ -127,6 +129,16 @@ class AdminUsersController extends Controller
      */
     public function destroy($id)
     {
-        //
+       $user = User::findOrFail($id);
+
+       // remove the file at public/images/filename and the corresponding record in photos table
+        unlink(public_path().$user->photo->file);
+        Photo::findOrFail($user->photo_id)->delete();
+
+        $user->delete();
+
+       Session::flash('deleted_user', $user->name.'been deleted successfully');
+
+       return redirect('/admin/users');
     }
 }
